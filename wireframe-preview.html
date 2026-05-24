@@ -1,0 +1,833 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>工作提醒 App 草图预览</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #17202a;
+      --muted: #667085;
+      --line: #d8dee7;
+      --bg: #e9edf2;
+      --phone: #151a23;
+      --panel: #f9fafb;
+      --surface: rgba(255, 255, 255, 0.92);
+      --accent: #255f9f;
+      --accent-soft: #e8f0f8;
+      --done: #247451;
+      --warn: #9a5b00;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      min-height: 100vh;
+      position: relative;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      opacity: 0.4;
+      background-image:
+        url("data:image/svg+xml,%3Csvg width='1600' height='1000' viewBox='0 0 1600 1000' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='1600' height='1000' fill='%23dfe5ec'/%3E%3Cg fill='none' stroke='%23a8b4c1' stroke-width='1.2' opacity='.5'%3E%3Cpath d='M0 140h1600M0 300h1600M0 460h1600M0 620h1600M0 780h1600'/%3E%3Cpath d='M160 0v1000M380 0v1000M600 0v1000M820 0v1000M1040 0v1000M1260 0v1000M1480 0v1000'/%3E%3C/g%3E%3Cg fill='%23c3ccd6' opacity='.42'%3E%3Crect x='80' y='90' width='520' height='250' rx='18'/%3E%3Crect x='980' y='118' width='420' height='210' rx='18'/%3E%3Crect x='710' y='560' width='620' height='270' rx='18'/%3E%3C/g%3E%3Cg fill='none' stroke='%238d9aaa' stroke-width='2' opacity='.35'%3E%3Cpath d='M142 210h398M1040 198h300M770 660h470'/%3E%3Cpath d='M142 252h310M1040 244h226M770 712h330'/%3E%3Cpath d='M142 294h364M1040 290h268M770 764h402'/%3E%3C/g%3E%3C/svg%3E");
+      background-size: cover;
+      background-position: center;
+    }
+
+    header {
+      padding: 30px 32px 8px;
+      max-width: 1280px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: 28px;
+      font-weight: 760;
+      letter-spacing: 0;
+    }
+
+    .subtitle {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.6;
+      max-width: 780px;
+    }
+
+    .board {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(220px, 1fr));
+      gap: 24px;
+      padding: 24px 32px 36px;
+      max-width: 1600px;
+      margin: 0 auto;
+      align-items: start;
+    }
+
+    .screen-note {
+      font-size: 14px;
+      font-weight: 720;
+      margin: 0 0 10px;
+      color: #2f3a45;
+    }
+
+    .phone {
+      background: var(--phone);
+      border-radius: 36px;
+      padding: 12px;
+      box-shadow: 0 22px 60px rgba(21, 26, 35, 0.24);
+      min-height: 650px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+    }
+
+    .screen {
+      min-height: 626px;
+      background: var(--panel);
+      border-radius: 25px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.55);
+    }
+
+    .status {
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 18px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .status .icons {
+      letter-spacing: 2px;
+      color: #344054;
+    }
+
+    .nav {
+      padding: 10px 18px 14px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.72);
+    }
+
+    .nav-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .title {
+      font-size: 24px;
+      line-height: 1.15;
+      font-weight: 780;
+      margin: 0;
+      letter-spacing: 0;
+    }
+
+    .date {
+      margin: 5px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .icon-btn {
+      width: 34px;
+      height: 34px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      display: grid;
+      place-items: center;
+      color: var(--accent);
+      font-size: 18px;
+      flex: 0 0 auto;
+      background: #fff;
+    }
+
+    .content {
+      flex: 1;
+      padding: 14px 16px 12px;
+      overflow: hidden;
+    }
+
+    .section-label {
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 760;
+      margin: 14px 0 8px;
+      letter-spacing: 0;
+    }
+
+    .section-label:first-child {
+      margin-top: 0;
+    }
+
+    .task {
+      display: grid;
+      grid-template-columns: 48px 1fr auto;
+      gap: 9px;
+      align-items: center;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 10px;
+      margin-bottom: 8px;
+      background: var(--surface);
+      box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
+    }
+
+    .time {
+      font-size: 13px;
+      font-weight: 760;
+      color: var(--accent);
+    }
+
+    .task-title {
+      font-size: 14px;
+      font-weight: 720;
+      margin: 0 0 3px;
+    }
+
+    .task-meta {
+      margin: 0;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .pill {
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      padding: 5px 8px;
+      font-size: 11px;
+      font-weight: 760;
+      white-space: nowrap;
+    }
+
+    .pill.done {
+      color: var(--done);
+      background: #e9f8f0;
+    }
+
+    .voice-bar {
+      margin-top: 14px;
+      border: 1px solid #b9c9dc;
+      background: rgba(255, 255, 255, 0.82);
+      border-radius: 10px;
+      padding: 14px;
+      text-align: center;
+    }
+
+    .mic {
+      width: 58px;
+      height: 58px;
+      border-radius: 12px;
+      background: var(--accent);
+      color: white;
+      display: grid;
+      place-items: center;
+      font-size: 22px;
+      margin: 0 auto 9px;
+      box-shadow: 0 10px 22px rgba(37, 95, 159, 0.22);
+    }
+
+    .voice-title {
+      font-size: 15px;
+      font-weight: 760;
+      margin: 0 0 4px;
+    }
+
+    .voice-hint {
+      font-size: 12px;
+      color: var(--muted);
+      margin: 0;
+      line-height: 1.5;
+    }
+
+    .tabbar {
+      height: 58px;
+      border-top: 1px solid var(--line);
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      background: rgba(255, 255, 255, 0.86);
+    }
+
+    .tab {
+      display: grid;
+      place-items: center;
+      align-content: center;
+      gap: 3px;
+      font-size: 11px;
+      color: var(--muted);
+      font-weight: 680;
+    }
+
+    .tab.active {
+      color: var(--accent);
+    }
+
+    .tab-icon {
+      font-size: 18px;
+      line-height: 1;
+    }
+
+    .transcript {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 12px;
+      font-size: 16px;
+      line-height: 1.6;
+      margin-bottom: 12px;
+      background: var(--surface);
+    }
+
+    .parse-card {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      overflow: hidden;
+      background: var(--surface);
+    }
+
+    .parse-row {
+      display: grid;
+      grid-template-columns: 72px 1fr;
+      gap: 10px;
+      padding: 12px;
+      border-bottom: 1px solid var(--line);
+      font-size: 14px;
+    }
+
+    .parse-row:last-child {
+      border-bottom: 0;
+    }
+
+    .parse-row strong {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .primary {
+      width: 100%;
+      border: 0;
+      background: var(--accent);
+      color: #fff;
+      border-radius: 8px;
+      padding: 13px;
+      font-size: 15px;
+      font-weight: 760;
+      margin-top: 14px;
+      box-shadow: 0 10px 18px rgba(37, 95, 159, 0.18);
+    }
+
+    .secondary-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .secondary {
+      border: 1px solid var(--line);
+      background: var(--surface);
+      color: var(--ink);
+      border-radius: 8px;
+      padding: 11px;
+      font-size: 14px;
+      font-weight: 720;
+    }
+
+    .field {
+      margin-bottom: 13px;
+    }
+
+    .field label {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 760;
+      margin-bottom: 7px;
+    }
+
+    .input {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      min-height: 44px;
+      padding: 11px;
+      font-size: 14px;
+      background: var(--surface);
+    }
+
+    .input.large {
+      min-height: 92px;
+      line-height: 1.5;
+    }
+
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 9px;
+    }
+
+    .chip {
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 7px 10px;
+      font-size: 12px;
+      color: var(--muted);
+      background: var(--surface);
+      font-weight: 700;
+    }
+
+    .chip.active {
+      color: var(--accent);
+      border-color: #9ebcf5;
+      background: var(--accent-soft);
+    }
+
+    .record {
+      border-bottom: 1px solid var(--line);
+      padding: 12px 0;
+    }
+
+    .record:first-child {
+      padding-top: 0;
+    }
+
+    .record h3 {
+      font-size: 14px;
+      margin: 0 0 5px;
+    }
+
+    .record p {
+      margin: 0;
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .search {
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.82);
+      border-radius: 8px;
+      padding: 10px 12px;
+      color: var(--muted);
+      font-size: 13px;
+      margin-bottom: 14px;
+    }
+
+    .setting-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--line);
+      padding: 14px 0;
+      gap: 12px;
+    }
+
+    .setting-row h3 {
+      margin: 0 0 4px;
+      font-size: 14px;
+    }
+
+    .setting-row p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .switch {
+      width: 42px;
+      height: 24px;
+      border-radius: 999px;
+      background: var(--accent);
+      padding: 3px;
+      flex: 0 0 auto;
+    }
+
+    .knob {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: white;
+      margin-left: auto;
+    }
+
+    .flow {
+      max-width: 1280px;
+      margin: 0 auto 34px;
+      padding: 0 32px;
+    }
+
+    .flow-inner {
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.9);
+      border-radius: 12px;
+      padding: 16px 18px;
+      box-shadow: 0 14px 34px rgba(21, 26, 35, 0.08);
+    }
+
+    .flow-title {
+      margin: 0 0 10px;
+      font-size: 16px;
+      font-weight: 760;
+    }
+
+    .flow-steps {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 8px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .flow-step {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 10px;
+      background: #fbfcfd;
+      line-height: 1.45;
+    }
+
+    @media (max-width: 1300px) {
+      .board {
+        grid-template-columns: repeat(3, minmax(220px, 1fr));
+      }
+
+      .flow-steps {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+
+    @media (max-width: 820px) {
+      header,
+      .board,
+      .flow {
+        padding-left: 16px;
+        padding-right: 16px;
+      }
+
+      .board {
+        grid-template-columns: 1fr;
+      }
+
+      .phone {
+        max-width: 360px;
+        margin: 0 auto;
+      }
+
+      .flow-steps {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>工作提醒 App 草图预览</h1>
+    <p class="subtitle">面向个人自用的 iOS 本地提醒记录工具。重点展示一句话语音创建、解析确认、提醒列表、工作记录和基础设置。</p>
+  </header>
+
+  <main class="board" aria-label="App wireframes">
+    <section>
+      <p class="screen-note">1. 今日提醒首页</p>
+      <div class="phone">
+        <div class="screen">
+          <div class="status"><span>9:41</span><span class="icons">●●●</span></div>
+          <div class="nav">
+            <div class="nav-row">
+              <div>
+                <h2 class="title">今天</h2>
+                <p class="date">2026年5月22日 周五</p>
+              </div>
+              <div class="icon-btn">+</div>
+            </div>
+          </div>
+          <div class="content">
+            <p class="section-label">待提醒</p>
+            <article class="task">
+              <div class="time">09:30</div>
+              <div>
+                <p class="task-title">跟进王总合同</p>
+                <p class="task-meta">语音创建 · 工作提醒</p>
+              </div>
+              <span class="pill">延后</span>
+            </article>
+            <article class="task">
+              <div class="time">14:00</div>
+              <div>
+                <p class="task-title">给客户发报价</p>
+                <p class="task-meta">今天下午提醒</p>
+              </div>
+              <span class="pill">完成</span>
+            </article>
+            <article class="task">
+              <div class="time">18:00</div>
+              <div>
+                <p class="task-title">记录今日完成事项</p>
+                <p class="task-meta">每天重复</p>
+              </div>
+              <span class="pill">重复</span>
+            </article>
+
+            <div class="voice-bar">
+              <div class="mic">声</div>
+              <p class="voice-title">点按说一句提醒</p>
+              <p class="voice-hint">例如：明天下午三点提醒我给客户发报价</p>
+            </div>
+
+            <p class="section-label">已完成</p>
+            <article class="task">
+              <div class="time">08:45</div>
+              <div>
+                <p class="task-title">发早会纪要</p>
+                <p class="task-meta">完成于 09:05</p>
+              </div>
+              <span class="pill done">已完成</span>
+            </article>
+          </div>
+          <nav class="tabbar">
+            <div class="tab active"><span class="tab-icon">✓</span><span>提醒</span></div>
+            <div class="tab"><span class="tab-icon">□</span><span>记录</span></div>
+            <div class="tab"><span class="tab-icon">设</span><span>设置</span></div>
+          </nav>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <p class="screen-note">2. 语音识别确认</p>
+      <div class="phone">
+        <div class="screen">
+          <div class="status"><span>9:41</span><span class="icons">●●●</span></div>
+          <div class="nav">
+            <div class="nav-row">
+              <div>
+                <h2 class="title">确认提醒</h2>
+                <p class="date">识别后先确认，避免时间错误</p>
+              </div>
+              <div class="icon-btn">×</div>
+            </div>
+          </div>
+          <div class="content">
+            <p class="section-label">语音文本</p>
+            <div class="transcript">明天下午三点提醒我给客户发报价</div>
+
+            <p class="section-label">解析结果</p>
+            <div class="parse-card">
+              <div class="parse-row">
+                <strong>内容</strong>
+                <span>给客户发报价</span>
+              </div>
+              <div class="parse-row">
+                <strong>时间</strong>
+                <span>2026年5月23日 15:00</span>
+              </div>
+              <div class="parse-row">
+                <strong>类型</strong>
+                <span>一次性提醒</span>
+              </div>
+            </div>
+
+            <button class="primary">保存提醒</button>
+            <div class="secondary-row">
+              <button class="secondary">修改内容</button>
+              <button class="secondary">重新录音</button>
+            </div>
+
+            <p class="section-label">解析失败时</p>
+            <div class="parse-card">
+              <div class="parse-row">
+                <strong>处理</strong>
+                <span>保存为普通记录，或手动选择提醒时间</span>
+              </div>
+            </div>
+          </div>
+          <nav class="tabbar">
+            <div class="tab active"><span class="tab-icon">✓</span><span>提醒</span></div>
+            <div class="tab"><span class="tab-icon">□</span><span>记录</span></div>
+            <div class="tab"><span class="tab-icon">设</span><span>设置</span></div>
+          </nav>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <p class="screen-note">3. 新增 / 编辑提醒</p>
+      <div class="phone">
+        <div class="screen">
+          <div class="status"><span>9:41</span><span class="icons">●●●</span></div>
+          <div class="nav">
+            <div class="nav-row">
+              <div>
+                <h2 class="title">编辑提醒</h2>
+                <p class="date">手动修正内容、时间和重复规则</p>
+              </div>
+              <div class="icon-btn">✓</div>
+            </div>
+          </div>
+          <div class="content">
+            <div class="field">
+              <label>提醒内容</label>
+              <div class="input large">给客户发报价</div>
+            </div>
+            <div class="field">
+              <label>提醒时间</label>
+              <div class="input">2026年5月23日 15:00</div>
+              <div class="chips">
+                <span class="chip">10分钟后</span>
+                <span class="chip">1小时后</span>
+                <span class="chip active">明天下午</span>
+              </div>
+            </div>
+            <div class="field">
+              <label>重复</label>
+              <div class="chips">
+                <span class="chip active">不重复</span>
+                <span class="chip">每天</span>
+                <span class="chip">每周</span>
+                <span class="chip">每月</span>
+              </div>
+            </div>
+            <div class="field">
+              <label>备注</label>
+              <div class="input large">报价单需要包含维护费和交付周期。</div>
+            </div>
+            <button class="primary">保存</button>
+            <button class="secondary" style="width:100%; margin-top:10px;">删除提醒</button>
+          </div>
+          <nav class="tabbar">
+            <div class="tab active"><span class="tab-icon">✓</span><span>提醒</span></div>
+            <div class="tab"><span class="tab-icon">□</span><span>记录</span></div>
+            <div class="tab"><span class="tab-icon">设</span><span>设置</span></div>
+          </nav>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <p class="screen-note">4. 工作记录</p>
+      <div class="phone">
+        <div class="screen">
+          <div class="status"><span>9:41</span><span class="icons">●●●</span></div>
+          <div class="nav">
+            <div class="nav-row">
+              <div>
+                <h2 class="title">记录</h2>
+                <p class="date">没有提醒时间的内容也保留</p>
+              </div>
+              <div class="icon-btn">声</div>
+            </div>
+          </div>
+          <div class="content">
+            <div class="search">搜索：客户、合同、报价、开票...</div>
+            <p class="section-label">今天</p>
+            <article class="record">
+              <h3>给 A 客户发了需求确认邮件</h3>
+              <p>11:20 · 普通记录 · 来自语音输入</p>
+            </article>
+            <article class="record">
+              <h3>修改项目方案第二版</h3>
+              <p>15:40 · 已关联提醒：明天 10:00 跟进反馈</p>
+            </article>
+            <p class="section-label">昨天</p>
+            <article class="record">
+              <h3>和财务确认开票资料</h3>
+              <p>18:10 · 普通记录</p>
+            </article>
+            <article class="record">
+              <h3>完成周报初稿</h3>
+              <p>20:35 · 已完成提醒</p>
+            </article>
+          </div>
+          <nav class="tabbar">
+            <div class="tab"><span class="tab-icon">✓</span><span>提醒</span></div>
+            <div class="tab active"><span class="tab-icon">□</span><span>记录</span></div>
+            <div class="tab"><span class="tab-icon">设</span><span>设置</span></div>
+          </nav>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <p class="screen-note">5. 本地设置</p>
+      <div class="phone">
+        <div class="screen">
+          <div class="status"><span>9:41</span><span class="icons">●●●</span></div>
+          <div class="nav">
+            <h2 class="title">设置</h2>
+            <p class="date">无账号、无服务器、数据只在本机</p>
+          </div>
+          <div class="content">
+            <div class="setting-row">
+              <div>
+                <h3>本地通知</h3>
+                <p>允许 App 到时间后弹出提醒</p>
+              </div>
+              <div class="switch"><div class="knob"></div></div>
+            </div>
+            <div class="setting-row">
+              <div>
+                <h3>语音识别</h3>
+                <p>使用 iOS 系统语音识别，默认中文</p>
+              </div>
+              <div class="switch"><div class="knob"></div></div>
+            </div>
+            <div class="setting-row">
+              <div>
+                <h3>默认延后</h3>
+                <p>10分钟、1小时、明天上午</p>
+              </div>
+              <span class="pill">可编辑</span>
+            </div>
+            <div class="setting-row">
+              <div>
+                <h3>数据存储</h3>
+                <p>SwiftData 本地数据库，不上传</p>
+              </div>
+              <span class="pill done">本地</span>
+            </div>
+            <div class="setting-row">
+              <div>
+                <h3>导出记录</h3>
+                <p>后续可导出 CSV 或纯文本</p>
+              </div>
+              <span class="pill">二期</span>
+            </div>
+          </div>
+          <nav class="tabbar">
+            <div class="tab"><span class="tab-icon">✓</span><span>提醒</span></div>
+            <div class="tab"><span class="tab-icon">□</span><span>记录</span></div>
+            <div class="tab active"><span class="tab-icon">设</span><span>设置</span></div>
+          </nav>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <section class="flow">
+    <div class="flow-inner">
+      <p class="flow-title">核心流程</p>
+      <div class="flow-steps">
+        <div class="flow-step">1. 首页点按麦克风，说出工作提醒</div>
+        <div class="flow-step">2. 系统语音识别成文字</div>
+        <div class="flow-step">3. 本地解析提醒内容和时间</div>
+        <div class="flow-step">4. 用户确认或手动修改</div>
+        <div class="flow-step">5. 保存到本地并创建 iOS 本地通知</div>
+      </div>
+    </div>
+  </section>
+</body>
+</html>
